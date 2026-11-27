@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RADIO MAP · Studio Tape Deck</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff5500' stroke-width='2'><rect x='2' y='6' width='20' height='12' rx='2'/><circle cx='8' cy='12' r='2'/><circle cx='16' cy='12' r='2'/><line x1='8' y1='14' x2='16' y2='14'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<style>
+  :root {
+    --bg: #111110;
+    --panel: #181816;
+    --panel-hover: #21211e;
+    --border: #2c2b28;
+    --border-bright: #403e39;
+    --text: #edeae4;
+    --muted: #8c8982;
+    --dim: #57554f;
+    --amber: #f59e0b;
+    --orange: #ff5500;
+    --rec: #ef4444;
+    --font-sans: 'Inter', -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    padding-bottom: 104px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Studio Tape Frame */
+  .studio-frame {
+    max-width: 1200px;
+    margin: 0 auto;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    min-height: 100vh;
+  }
+
+  /* Top Corner Slate Bar */
+  .slate-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 28px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .slate-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .cassette-reels {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    border: 1px solid var(--border-bright);
+    border-radius: 3px;
+    background: var(--panel);
+  }
+
+  .reel {
+    width: 10px;
+    height: 10px;
+    border: 1.5px solid var(--amber);
+    border-radius: 50%;
+    position: relative;
+  }
+
+  .reel::after {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    border-top: 1.5px solid var(--text);
+    border-radius: 50%;
+  }
+
+  .cassette-reels.spinning .reel::after {
+    animation: spinReel 1.2s linear infinite;
+  }
+
+  @keyframes spinReel {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Session Box Hero */
+  .session-box {
+    padding: 44px 28px 36px;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: end;
+  }
+
+  .session-kicker {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--amber);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .session-box h1 {
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .session-specs {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.8;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    padding: 12px 16px;
+    border-radius: 4px;
+  }
+
+  .session-specs b {
+    color: var(--text);
+  }
+
+  /* Search & Console Ruled Strip */
+  .console-strip {
+    display: grid;
+    grid-template-columns: 1fr 260px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+  }
+
+  .console-cell {
+    padding: 14px 24px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .console-cell:last-child {
+    border-right: none;
+  }
+
+  .console-label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+
+  .console-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    outline: none;
+  }
+
+  .console-input::placeholder {
+    color: var(--dim);
+  }
+
+  .console-select {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .console-select option {
+    background: #181816;
+    color: #edeae4;
+  }
+
+  /* Master Tape Sheet Header */
+  .sheet-header {
+    display: grid;
+    grid-template-columns: 56px 2.4fr 1.8fr 1fr;
+    padding: 12px 28px;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Track Row */
+  .track-row {
+    display: grid;
+    grid-template-columns: 56px 2.4fr 1.8fr 1fr;
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .track-row:hover {
+    background: var(--panel-hover);
+  }
+
+  .track-row.active-track {
+    background: rgba(255, 85, 0, 0.08);
+    border-left: 3px solid var(--orange);
+    padding-left: 25px;
+  }
+
+  .track-num {
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    color: var(--dim);
+  }
+
+  .track-name-col {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding-right: 12px;
+  }
+
+  .track-play-btn {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--border-bright);
+    background: var(--panel);
+    color: var(--text);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+  }
+
+  .track-row:hover .track-play-btn {
+    border-color: var(--amber);
+    color: var(--amber);
+  }
+
+  .track-row.active-track .track-play-btn {
+    background: var(--orange);
+    border-color: var(--orange);
+    color: #fff;
+  }
+
+  .track-title {
+    font-size: 0.94rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .track-place {
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    color: var(--text);
+    padding-right: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .track-coords {
+    display: block;
+    font-size: 0.66rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .track-freq {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    color: var(--amber);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .track-genre {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .track-save {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .btn-fav {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-fav:hover {
+    border-color: var(--text);
+    color: var(--text);
+  }
+
+  .btn-fav.saved {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: #111;
+    font-weight: 700;
+  }
+
+  /* Bottom Fixed Transport Bar (Signature Taperoom Style) */
+  .transport-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #141412;
+    border-top: 1px solid var(--border-bright);
+    z-index: 200;
+    padding: 12px 24px;
+  }
+
+  .transport-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .transport-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  .smpte-clock {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--amber);
+    background: #0b0b0a;
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    border-radius: 3px;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .rec-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--dim);
+  }
+
+  .rec-dot.live {
+    background: var(--rec);
+    box-shadow: 0 0 8px var(--rec);
+    animation: blinkRec 1s ease-in-out infinite;
+  }
+
+  @keyframes blinkRec {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+  }
+
+  .transport-now {
+    min-width: 0;
+  }
+
+  .transport-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .transport-sub {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .transport-locate {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .locate-btn {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 7px 14px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .locate-btn:hover {
+    color: var(--text);
+    border-color: var(--border-bright);
+  }
+
+  .locate-btn.active {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+    font-weight: 700;
+  }
+
+  .rec-cta {
+    background: var(--orange);
+    border: 1px solid var(--orange);
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 7px 14px;
+    border-radius: 3px;
+    cursor: pointer;
+    display: none;
+  }
+
+  .rec-cta.visible {
+    display: inline-block;
+  }
+
+  .status-msg {
+    padding: 64px 28px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--panel);
+    border: 1px solid var(--amber);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    padding: 10px 16px;
+    border-radius: 3px;
+    z-index: 300;
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: all 0.2s ease;
+    pointer-events: none;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (max-width: 820px) {
+    .session-box { grid-template-columns: 1fr; }
+    .session-specs { text-align: left; }
+    .console-strip { grid-template-columns: 1fr; }
+    .console-cell { border-right: none; border-bottom: 1px solid var(--border); }
+    .sheet-header, .track-row {
+      grid-template-columns: 40px 1.6fr 1.2fr;
+    }
+    .track-freq, .track-genre, .col-hide { display: none; }
+    .transport-inner { flex-wrap: wrap; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="studio-frame">
+  <!-- Corner Slate Header -->
+  <header class="slate-bar">
+    <a href="/" class="slate-brand">
+      <div class="cassette-reels" id="tapeReels">
+        <div class="reel"></div>
+        <div class="reel"></div>
+      </div>
+      <span>RADIO MAP // STUDIO TAPE DECK</span>
+    </a>
+    <div>SOURCE: RADIO-BROWSER REST API · NO KEY</div>
+  </header>
+
+  <!-- Tape Box Hero -->
+  <section class="session-box">
+    <div>
+      <div class="session-kicker">MASTER SESSION LOG · LIVE WORLDWIDE RECEIVER</div>
+      <h1>Radio Map.</h1>
+    </div>
+    <div class="session-specs">
+      <div>MODE: <b>LIVE STREAMING</b></div>
+      <div>DATA: <b>JSON LOG (historique.json)</b></div>
+      <div>STATUS: <b id="signalState">STANDBY</b></div>
+    </div>
+  </section>
+
+  <!-- Search & Country Console -->
+  <div class="console-strip">
+    <div class="console-cell">
+      <span class="console-label">SEARCH:</span>
+      <input type="text" id="searchInput" class="console-input" placeholder="Nom de station, ville, genre (ex: Tunis, Jazz, BBC)..." autocomplete="off">
+    </div>
+    <div class="console-cell">
+      <span class="console-label">ZONE:</span>
+      <select id="countrySelect" class="console-select">
+        <option value="">TOUS LES PAYS</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Master Tape Track Header -->
+  <div class="sheet-header">
+    <div>TRK</div>
+    <div>Station / Signal</div>
+    <div>Exact Place Name</div>
+    <div class="col-hide">Genre</div>
+  </div>
+
+  <!-- Stations Track List -->
+  <div id="tracksContainer">
+    <div class="status-msg">Chargement des stations...</div>
+  </div>
+</div>
+
+<!-- Fixed Bottom Transport Bar (Taperoom Style) -->
+<div class="transport-bar">
+  <div class="transport-inner">
+    <div class="transport-left">
+      <div class="smpte-clock">
+        <span class="rec-dot" id="recDot"></span>
+        <span id="smpteDisplay">00:00:00</span>
+      </div>
+      <div class="transport-now">
+        <div class="transport-title" id="nowTitle">Aucune station sélectionnée</div>
+        <div class="transport-sub" id="nowSub">CLIQUEZ SUR UNE PISTE POUR ÉCOUTER</div>
+      </div>
+    </div>
+
+    <div class="transport-locate">
+      <button class="locate-btn active" onclick="loadTop()">LOCATE: TOP</button>
+      <button class="rec-cta" id="stopBtn" onclick="stopRadio()">■ STOP</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toastBox"></div>
+<audio id="audioPlayer" preload="none"></audio>
+
+<script>
+  let currentStation = null;
+  let hls = null;
+  let timer = null;
+  let secondsElapsed = 0;
+  let searchTimer = null;
+
+  const audio = document.getElementById('audioPlayer');
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    await loadCountries();
+    await loadTop();
+  });
+
+  // Search bar
+  document.getElementById('searchInput').addEventListener('input', (e) => {
+    clearTimeout(searchTimer);
+    const q = e.target.value.trim();
+    if (!q) {
+      loadTop();
+      return;
+    }
+    searchTimer = setTimeout(() => searchStations(q), 350);
+  });
+
+  // Country filter
+  document.getElementById('countrySelect').addEventListener('change', (e) => {
+    const pays = e.target.value;
+    if (pays) loadByCountry(pays);
+    else loadTop();
+  });
+
+  async function loadTop() {
+    setStatus('Chargement des stations mondiales...');
+    try {
+      const res = await fetch('/api/top');
+      const data = await res.json();
+      renderTracks(data);
+    } catch {
+      setStatus('Erreur réseau.');
+    }
+  }
+
+  async function searchStations(q) {
+    setStatus(`Recherche : "${q}"...`);
+    try {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      renderTracks(data, `Aucune station trouvée pour "${q}".`);
+    } catch {
+      setStatus('Erreur lors de la recherche.');
+    }
+  }
+
+  async function loadByCountry(pays) {
+    setStatus(`Chargement : ${pays}...`);
+    try {
+      const res = await fetch(`/api/pays/${encodeURIComponent(pays)}`);
+      const data = await res.json();
+      renderTracks(data, `Aucune station pour ${pays}.`);
+    } catch {
+      setStatus('Erreur réseau.');
+    }
+  }
+
+  async function loadCountries() {
+    try {
+      const res = await fetch('/api/pays');
+      const list = await res.json();
+      const sel = document.getElementById('countrySelect');
+      list.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.name;
+        opt.textContent = `${p.name} (${p.stationcount})`;
+        sel.appendChild(opt);
+      });
+    } catch {}
+  }
+
+  function renderTracks(stations, emptyMsg = 'Aucune station disponible.') {
+    const container = document.getElementById('tracksContainer');
+    container.innerHTML = '';
+
+    if (!stations || !stations.length) {
+      setStatus(emptyMsg);
+      return;
+    }
+
+    stations.forEach((s, i) => {
+      const isPlaying = currentStation && currentStation.stationuuid === s.stationuuid && !audio.paused;
+
+      // Exact place name (state + country + coordinates if available)
+      const placeParts = [s.state, s.country].filter(Boolean);
+      const exactPlace = placeParts.length ? placeParts.join(', ') : 'Global';
+      const coords = (s.geo_lat && s.geo_long)
+        ? `${Number(s.geo_lat).toFixed(2)}°, ${Number(s.geo_long).toFixed(2)}°`
+        : (s.countrycode || 'INTL');
+
+      const genre = (s.tags || 'RADIO').split(',')[0].trim();
+
+      const row = document.createElement('div');
+      row.className = `track-row ${isPlaying ? 'active-track' : ''}`;
+      row.innerHTML = `
+        <div class="track-num">${String(i + 1).padStart(2, '0')}</div>
+        <div class="track-name-col">
+          <div class="track-play-btn">${isPlaying ? '■' : '▶'}</div>
+          <div class="track-title">${esc(s.name)}</div>
+        </div>
+        <div class="track-place">
+          ${esc(exactPlace)}
+          <span class="track-coords">${esc(coords)}</span>
+        </div>
+        <div class="track-genre">${esc(genre)}</div>
+      `;
+
+      row.addEventListener('click', () => playRadio(s));
+      container.appendChild(row);
+    });
+  }
+
+  function playRadio(s) {
+    const url = s.url_resolved || s.url;
+    if (!url) {
+      showToast('Flux audio introuvable');
+      return;
+    }
+
+    if (currentStation && currentStation.stationuuid === s.stationuuid && !audio.paused) {
+      stopRadio();
+      return;
+    }
+
+    stopRadio();
+    currentStation = s;
+
+    const place = [s.state, s.country].filter(Boolean).join(', ') || 'Global';
+    document.getElementById('nowTitle').textContent = s.name;
+    document.getElementById('nowSub').textContent = `${place} · CONNEXION...`;
+    document.getElementById('signalState').textContent = 'ON AIR';
+    document.getElementById('stopBtn').classList.add('visible');
+    document.getElementById('recDot').classList.add('live');
+    document.getElementById('tapeReels').classList.add('spinning');
+
+    startClock();
+
+    if (url.includes('.m3u8') && Hls.isSupported()) {
+      hls = new Hls();
+      hls.loadSource(url);
+      hls.attachMedia(audio);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        audio.play().then(() => {
+          document.getElementById('nowSub').textContent = `${place} · EN DIRECT`;
+        }).catch(useProxy);
+      });
+      hls.on(Hls.Events.ERROR, useProxy);
+    } else {
+      audio.src = url;
+      audio.play().then(() => {
+        document.getElementById('nowSub').textContent = `${place} · EN DIRECT`;
+      }).catch(useProxy);
+    }
+
+    function useProxy() {
+      const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
+      audio.src = proxyUrl;
+      audio.play().then(() => {
+        document.getElementById('nowSub').textContent = `${place} · ${freq} · RELAIS PROXY`;
+      }).catch(() => {
+        showToast('Station temporairement hors ligne');
+        stopRadio();
+      });
+    }
+
+    refreshActiveHighlight();
+  }
+
+  function stopRadio() {
+    audio.pause();
+    audio.src = '';
+    if (hls) { hls.destroy(); hls = null; }
+    currentStation = null;
+    stopClock();
+    document.getElementById('nowTitle').textContent = 'Aucune station sélectionnée';
+    document.getElementById('nowSub').textContent = 'CLIQUEZ SUR UNE PISTE POUR ÉCOUTER';
+    document.getElementById('signalState').textContent = 'STANDBY';
+    document.getElementById('stopBtn').classList.remove('visible');
+    document.getElementById('recDot').classList.remove('live');
+    document.getElementById('tapeReels').classList.remove('spinning');
+    refreshActiveHighlight();
+  }
+
+  function startClock() {
+    stopClock();
+    secondsElapsed = 0;
+    timer = setInterval(() => {
+      secondsElapsed++;
+      const hrs = String(Math.floor(secondsElapsed / 3600)).padStart(2, '0');
+      const mins = String(Math.floor((secondsElapsed % 3600) / 60)).padStart(2, '0');
+      const secs = String(secondsElapsed % 60).padStart(2, '0');
+      document.getElementById('smpteDisplay').textContent = `${hrs}:${mins}:${secs}`;
+    }, 1000);
+  }
+
+  function stopClock() {
+    if (timer) clearInterval(timer);
+    document.getElementById('smpteDisplay').textContent = '00:00:00';
+  }
+
+  function refreshActiveHighlight() {
+    document.querySelectorAll('.track-row').forEach(row => {
+      const title = row.querySelector('.track-title')?.textContent;
+      const isCurrent = currentStation && title === currentStation.name;
+      row.classList.toggle('active-track', !!isCurrent);
+      const btn = row.querySelector('.track-play-btn');
+      if (btn) btn.textContent = isCurrent ? '■' : '▶';
+    });
+  }
+
+  function setStatus(msg) {
+    document.getElementById('tracksContainer').innerHTML = `<div class="status-msg">${esc(msg)}</div>`;
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toastBox');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  function esc(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+</script>
+</body>
+</html>
